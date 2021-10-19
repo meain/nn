@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/matrix-org/gomatrix"
@@ -23,13 +24,12 @@ func runCommand(command string) (string, error) {
 }
 
 func main() {
-	fmt.Println("Starting nn...")
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	fmt.Println("Setting up user", os.Getenv("NN_MATRIX_USER"))
+	fmt.Println("Starting user", os.Getenv("NN_MATRIX_USER"), "on", os.Getenv("NN_SERVER"))
 	cli, _ := gomatrix.NewClient(os.Getenv("NN_MATRIX_SERVER"), os.Getenv("NN_MATRIX_USER"), os.Getenv("NN_MATRIX_PASSWORD"))
 	syncer := cli.Syncer.(*gomatrix.DefaultSyncer)
 
@@ -42,9 +42,18 @@ func main() {
 			fmt.Println("Unable to parse body for request. Skipping.", ev.ID)
 			return
 		}
-		fmt.Println("["+ev.Sender+"]:", body[2:len(body)])
+		if body == "!servers" {
+			cli.SendText(ev.RoomID, "Running: "+os.Getenv("NN_MATRIX_USER")+" on "+os.Getenv("NN_SERVER"))
+		}
 		if body[0:2] == "! " {
+			fmt.Println("["+ev.Sender+"]:", body[2:len(body)])
 			body = body[2:len(body)]
+
+		} else if body[0] == '!' && strings.Split(body, " ")[0][1:len(strings.Split(body, " ")[0])] == os.Getenv("NN_SERVER") {
+			//  Optionally run on specific server. For example `!doom <command>`
+			var splits = strings.Split(body, " ")
+			fmt.Println("["+ev.Sender+"]:", strings.Join(splits[1:len(splits)], " "))
+			body = strings.Join(splits[1:len(splits)], " ")
 		} else {
 			// Not for command execution
 			return
@@ -53,6 +62,7 @@ func main() {
 		if err != nil {
 			cli.SendNotice(ev.RoomID, "Unable to run command: "+body)
 		}
+		cli.SendNotice(ev.RoomID, os.Getenv("NN_SERVER")+": "+body)
 		cli.SendText(ev.RoomID, output)
 	})
 
