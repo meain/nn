@@ -23,6 +23,15 @@ func runCommand(command string) (string, error) {
 	return string(stdout), nil
 }
 
+func processRunCommand(command, room, sender string, cli *gomatrix.Client) {
+	output, err := runCommand(command)
+	if err != nil {
+		cli.SendNotice(room, "Unable to run command: "+command)
+	}
+	cli.SendNotice(room, os.Getenv("NN_SERVER")+": "+command)
+	cli.SendText(room, output)
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -58,12 +67,7 @@ func main() {
 			// Not for command execution
 			return
 		}
-		output, err := runCommand(body)
-		if err != nil {
-			cli.SendNotice(ev.RoomID, "Unable to run command: "+body)
-		}
-		cli.SendNotice(ev.RoomID, os.Getenv("NN_SERVER")+": "+body)
-		cli.SendText(ev.RoomID, output)
+		processRunCommand(body, ev.RoomID, ev.Sender, cli)
 	})
 
 	if err := cli.Sync(); err != nil {
