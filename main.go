@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"log"
 	"os"
 	"os/exec"
@@ -27,9 +28,9 @@ func processRunCommand(command, room, sender string, cli *gomatrix.Client) {
 	output, err := runCommand(command)
 	if err != nil {
 		cli.SendNotice(room, "Unable to run command: "+command)
+		return
 	}
-	cli.SendNotice(room, os.Getenv("NN_SERVER")+": "+command)
-	cli.SendText(room, output)
+	cli.SendFormattedText(room, ":: "+os.Getenv("NN_SERVER")+": "+command+"\n"+output, os.Getenv("NN_SERVER")+": "+command+"<br><pre>"+html.EscapeString(output)+"</pre>")
 }
 
 func main() {
