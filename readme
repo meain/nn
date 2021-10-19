@@ -1,0 +1,3 @@
+nn
+
+Quick little bot to run shell commands (with cron support) on servers via matrix.
