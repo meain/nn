@@ -1,3 +1,8 @@
 nn
-
+==
 Quick little bot to run shell commands (with cron support) on servers via matrix.
+
+Usage
+-----
+! <command> # run command all available servers
+!<server-name> command # run command on only <server-name>
