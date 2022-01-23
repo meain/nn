@@ -6,3 +6,7 @@ Usage
 -----
 ! <command> # run command all available servers
 !<server-name> command # run command on only <server-name>
+
+
+Can I use it? Yes
+Should you use it? Probably not. I have no idea if this is secure.
